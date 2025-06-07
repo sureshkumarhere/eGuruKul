@@ -1,5 +1,5 @@
 import {configureStore} from "@reduxjs/toolkit" 
-import {rootRedcuer} from "./rootredcuer";
+import rootRedcuer from "./rootreducer";
 import { authApi } from "@/features/api/authApi";
 import { courseApi } from "@/features/api/courseApi";
 import { purchaseApi } from "@/features/api/purchaseApi";
