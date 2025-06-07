@@ -20,7 +20,8 @@ app.use(cookieParser());// to access the cookies
 // here are the apis 
 import userRoutes from "./routes/user.route.js";
 app.use('/api/v1/user', userRoutes);
-
+import courseRoute from "./routes/course.route.js";
+app.use('/api/v1/course', courseRoute);
 
 
 app.listen(PORT, () => {

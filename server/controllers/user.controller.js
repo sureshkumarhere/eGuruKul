@@ -80,7 +80,8 @@ export const logout = async (req, res) => {
 
 export const getUserProfile = async (req, res) => {
     try {
-        const userId = req.Id; 
+        const userId = req.id; 
+        console.log(userId)
         const user = await User.findById(userId).select("-password").populate("enrolledCourses");
         if (!user) {
             return res.status(404).json({ message: "Profile not found", success: false });
