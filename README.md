@@ -54,3 +54,16 @@ Clone the repository:
 ```bash
 git clone https://github.com/sureshkumarhere/eGuruKul.git
 cd eGuruKul
+
+cd server
+npm install
+npm i nodemon
+npm run dev
+
+
+cd ..
+cd client
+npm install
+npm run dev
+
+
