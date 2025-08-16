@@ -36,7 +36,24 @@ const Profile = () => {
     },
   ] = useUpdateUserMutation();
 
-  console.log(data);
+  useEffect(() => {
+    refetch();
+  }, []);
+
+  useEffect(() => {
+    if (isSuccess) {
+      refetch();
+      toast.success(data?.message || "Profile updated.");
+    }
+    if (isError) {
+      toast.error(error?.message || "Failed to update profile");
+    }
+    // eslint-disable-next-line
+  }, [error, updateUserData, isSuccess, isError]);
+
+  if (isLoading) return <h1>Profile Loading...</h1>;
+
+  const user = data?.user;
 
   const onChangeHandler = (e) => {
     const file = e.target.files?.[0];
@@ -50,26 +67,9 @@ const Profile = () => {
     await updateUser(formData);
   };
 
-  useEffect(() => {
-    refetch();
-  }, []);
-
-  useEffect(() => {
-    if (isSuccess) {
-      refetch();
-      toast.success(data.message || "Profile updated.");
-    }
-    if (isError) {
-      toast.error(error.message || "Failed to update profile");
-    }
-  }, [error, updateUserData, isSuccess, isError]);
-
-  if (isLoading) return <h1>Profile Loading...</h1>;
-
-  const user = data && data.user;
-
-  console.log(user);
-  
+  if (!user) {
+    return <h1>Could not load profile data.</h1>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 my-10">
@@ -89,7 +89,7 @@ const Profile = () => {
             <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
               Name:
               <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                {user.name}
+                {user?.name || "N/A"}
               </span>
             </h1>
           </div>
@@ -97,7 +97,7 @@ const Profile = () => {
             <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
               Email:
               <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                {user.email}
+                {user?.email || "N/A"}
               </span>
             </h1>
           </div>
@@ -105,7 +105,7 @@ const Profile = () => {
             <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
               Role:
               <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                {user.role.toUpperCase()}
+                {user?.role ? user.role.toUpperCase() : "N/A"}
               </span>
             </h1>
           </div>
@@ -166,12 +166,12 @@ const Profile = () => {
       <div>
         <h1 className="font-medium text-lg">Courses you're enrolled in</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 my-5">
-          {user.enrolledCourses.length === 0 ? (
-            <h1>You haven't enrolled yet</h1>
-          ) : (
+          {user?.enrolledCourses && user.enrolledCourses.length > 0 ? (
             user.enrolledCourses.map((course) => (
               <Course course={course} key={course._id} />
             ))
+          ) : (
+            <h1>You haven't enrolled yet</h1>
           )}
         </div>
       </div>

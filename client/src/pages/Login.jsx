@@ -16,7 +16,7 @@ import {
   useRegisterUserMutation,
 } from "@/features/api/authApi";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -28,63 +28,56 @@ const Login = () => {
   });
   const [loginInput, setLoginInput] = useState({ email: "", password: "" });
 
-  const [
-    registerUser,
-    {
-      data: registerData,
-      error: registerError,
-      isLoading: registerIsLoading,
-      isSuccess: registerIsSuccess,
-    },
-  ] = useRegisterUserMutation();
-  const [
-    loginUser,
-    {
-      data: loginData,
-      error: loginError,
-      isLoading: loginIsLoading,
-      isSuccess: loginIsSuccess,
-    },
-  ] = useLoginUserMutation();
+  const [registerUser, { data: registerData, error: registerError, isLoading: registerIsLoading }] =
+    useRegisterUserMutation();
+
+  const [loginUser, { data: loginData, error: loginError, isLoading: loginIsLoading }] =
+    useLoginUserMutation();
+
   const navigate = useNavigate();
 
   const changeInputHandler = (e, type) => {
     const { name, value } = e.target;
     if (type === "signup") {
-      setSignupInput({ ...signupInput, [name]: value });
+      setSignupInput((prev) => ({ ...prev, [name]: value }));
     } else {
-      setLoginInput({ ...loginInput, [name]: value });
+      setLoginInput((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const extractMessage = (err, fallback) => {
+    // err might be: { data: { message } }, or { message }, or a string, or undefined
+    if (!err) return fallback;
+    return (
+      err?.data?.message ||
+      err?.message ||
+      (typeof err === "string" ? err : undefined) ||
+      fallback
+    );
   };
 
   const handleRegistration = async (type) => {
     const inputData = type === "signup" ? signupInput : loginInput;
     const action = type === "signup" ? registerUser : loginUser;
-    await action(inputData);
-  };
 
-  useEffect(() => {
-    if(registerIsSuccess && registerData){
-      toast.success(registerData.message || "Signup successful.")
+    try {
+      const result = await action(inputData).unwrap(); // throws on error
+      const successMsg = result?.message || (type === "signup" ? "Signup successful." : "Login successful.");
+      toast.success(successMsg);
+
+      if (type === "signup") {
+        // clear signup form (optional)
+        setSignupInput({ name: "", email: "", password: "" });
+        // optionally switch to login tab — left out for simplicity
+      } else {
+        // login success -> navigate to home
+        navigate("/");
+      }
+    } catch (err) {
+      const msg = extractMessage(err, type === "signup" ? "Signup failed" : "Login failed");
+      toast.error(msg);
     }
-    if(registerError){
-      toast.error(registerError.data.message || "Signup Failed");
-    }
-    if(loginIsSuccess && loginData){
-      toast.success(loginData.message || "Login successful.");
-      navigate("/");
-    }
-    if(loginError){ 
-      toast.error(loginError.data.message || "login Failed");
-    }
-  }, [
-    loginIsLoading,
-    registerIsLoading,
-    loginData,
-    registerData,
-    loginError,
-    registerError,
-  ]);
+  };
 
   return (
     <div className="flex items-center w-full justify-center mt-20">
@@ -93,6 +86,7 @@ const Login = () => {
           <TabsTrigger value="signup">Signup</TabsTrigger>
           <TabsTrigger value="login">Login</TabsTrigger>
         </TabsList>
+
         <TabsContent value="signup">
           <Card>
             <CardHeader>
@@ -101,41 +95,48 @@ const Login = () => {
                 Create a new account and click signup when you're done.
               </CardDescription>
             </CardHeader>
+
             <CardContent className="space-y-2">
               <div className="space-y-1">
                 <Label htmlFor="name">Name</Label>
                 <Input
+                  id="name"
                   type="text"
                   name="name"
                   value={signupInput.name}
                   onChange={(e) => changeInputHandler(e, "signup")}
-                  placeholder="Eg. Virat"
-                  required="true"
+                  placeholder="Eg. patel"
+                  required
                 />
               </div>
+
               <div className="space-y-1">
-                <Label htmlFor="username">Email</Label>
+                <Label htmlFor="email-signup">Email</Label>
                 <Input
+                  id="email-signup"
                   type="email"
                   name="email"
                   value={signupInput.email}
                   onChange={(e) => changeInputHandler(e, "signup")}
-                  placeholder="Eg. xyz@gmail.com"
-                  required="true"
+                  placeholder="Eg. patel@gmail.com"
+                  required
                 />
               </div>
+
               <div className="space-y-1">
-                <Label htmlFor="username">Password</Label>
+                <Label htmlFor="password-signup">Password</Label>
                 <Input
+                  id="password-signup"
                   type="password"
                   name="password"
                   value={signupInput.password}
                   onChange={(e) => changeInputHandler(e, "signup")}
                   placeholder="Eg. xyz"
-                  required="true"
+                  required
                 />
               </div>
             </CardContent>
+
             <CardFooter>
               <Button
                 disabled={registerIsLoading}
@@ -153,6 +154,7 @@ const Login = () => {
             </CardFooter>
           </Card>
         </TabsContent>
+
         <TabsContent value="login">
           <Card>
             <CardHeader>
@@ -161,30 +163,35 @@ const Login = () => {
                 Login your password here. After signup, you'll be logged in.
               </CardDescription>
             </CardHeader>
+
             <CardContent className="space-y-2">
               <div className="space-y-1">
-                <Label htmlFor="current">Email</Label>
+                <Label htmlFor="email-login">Email</Label>
                 <Input
+                  id="email-login"
                   type="email"
                   name="email"
                   value={loginInput.email}
                   onChange={(e) => changeInputHandler(e, "login")}
-                  placeholder="Eg. xyz@gmail.com"
-                  required="true"
+                  placeholder="Eg. patel@gmail.com"
+                  required
                 />
               </div>
+
               <div className="space-y-1">
-                <Label htmlFor="new">Password</Label>
+                <Label htmlFor="password-login">Password</Label>
                 <Input
+                  id="password-login"
                   type="password"
                   name="password"
                   value={loginInput.password}
                   onChange={(e) => changeInputHandler(e, "login")}
                   placeholder="Eg. xyz"
-                  required="true"
+                  required
                 />
               </div>
             </CardContent>
+
             <CardFooter>
               <Button
                 disabled={loginIsLoading}
@@ -206,4 +213,5 @@ const Login = () => {
     </div>
   );
 };
+
 export default Login;
